@@ -30,6 +30,8 @@ class SudokuSolver
 {
 	std::stack<Node>* solutions;
 	std::vector<std::vector<Node>> matrix;
+	std::vector<Node> headers;
+	Node root;
 	const int maxRows;
 	const int maxCols;
 	const int size;
@@ -40,10 +42,12 @@ class SudokuSolver
 	const int cellOffset;
 	const int boxOffset;
 	
-
-	void toExactCoverMatrix(std::vector<std::vector<char>>& board);
 	void initMatrix();
+	bool linkHeadersAndColumns();
+	bool addColumn(Node* newNode);
+	bool addColumn(Node* newNode, Node* rightNode);
 	size_t calculateMaxSz();
+
 
 public:
 

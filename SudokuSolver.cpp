@@ -29,19 +29,6 @@ Node::Node()
 {
 }
 
-void SudokuSolver::toExactCoverMatrix(std::vector<std::vector<char>>& board)
-{
-	for (size_t i = 0; i < board.size(); i++)
-	{
-		for (size_t j = 0; j < board.size(); j++)
-		{
-			//if (board[i][j] == ' ')
-				//matrix.push(Node(i, j, true));
-		}
-
-	}
-}
-
 void SudokuSolver::initMatrix()
 {
 	for (int i = 0; i < size; i++)			//fila
@@ -80,6 +67,67 @@ void SudokuSolver::initMatrix()
 	printMatrix(matrix);
 }
 
+bool SudokuSolver::linkHeadersAndColumns()
+{;
+	int j = 0;
+	for (Node& h : headers)
+	{
+		Node* nextNodeToLink = &h;
+		for (int i = 0; i < maxRows; i++)
+		{
+			if (matrix[i][j].initialized)
+			{
+				matrix[i][j].top = nextNodeToLink;
+				nextNodeToLink->bottom = &matrix[i][j];
+				matrix[i][j].bottom = &h;
+				h.top = &matrix[i][j];
+				matrix[i][j].colHeader = &h;
+				nextNodeToLink = &matrix[i][j];
+			}
+		}
+
+		if (h.bottom == &h)
+			cout << "La columna no tiene filas. Col: " << j << endl;
+
+		if (!addColumn(&h))
+		{
+			cout << "Error al añadir columna" << endl;
+			return false;
+		}
+
+		j++;
+	}
+
+	return true;
+}
+
+bool SudokuSolver::addColumn(Node* newNode)
+{
+	bool ret = false;
+
+	if (newNode->header)
+		ret = addColumn(newNode, &root);
+
+	return ret;
+}
+
+bool SudokuSolver::addColumn(Node* newNode, Node* rightNode) //inserta un header, o sea, una columna entera
+{
+	if (rightNode->right == &root && rightNode != newNode)
+	{
+		rightNode->right->left = newNode;
+		newNode->right = rightNode->right;
+		newNode->left = rightNode;
+		rightNode->right = newNode;
+
+		return true;
+	}
+	else if (rightNode == newNode)
+		return false;
+	else
+		return addColumn(newNode, rightNode->right);
+}
+
 size_t SudokuSolver::calculateMaxSz()
 {
 	return size_t();
@@ -96,7 +144,29 @@ SudokuSolver::SudokuSolver(std::vector<std::vector<char>>& board, const int size
 	cellOffset{ colOffset + colOffset },
 	boxOffset{ cellOffset + colOffset }
 {
+	root = Node();
+	root.bottom = &root;
+	root.top = &root;
+	root.left = &root;
+	root.right = &root;
+
 	matrix.assign(maxRows, vector<Node>(maxCols, Node()));
+	headers.assign(maxCols, Node());
+
+	for (Node& h : headers)
+	{
+		h.top = &h;
+		h.bottom = &h;
+		h.left = &h;
+		h.right = &h;
+		h.colHeader = &h;
+		h.header = true;
+	}
+
 	initMatrix();
-	toExactCoverMatrix(board);
+	if (linkHeadersAndColumns())
+	{
+
+	}
+
 }
